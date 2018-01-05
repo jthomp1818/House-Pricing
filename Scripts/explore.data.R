@@ -9,6 +9,7 @@ library(ggplot2)
 library(ggthemes)
 library(ggthemr)
 library(reshape2)
+library(corrplot)
 
 # Read clean train and test datasets
 train <- readRDS("Data/wrangled/clean.train.rds")
@@ -128,7 +129,7 @@ ggplot(data = train) +
 cor(x = train$AvgRmSF, y = train$SalePrice)
 
 #======================================================================================================
-# 1.9 
+# 1.9 Create Correlation Maps
 
 cormat <- cor(train[, list(
   MSSubClass = as.numeric(MSSubClass), LotFrontage, LotArea, OverallQual = as.numeric(OverallQual), 
@@ -139,12 +140,13 @@ cormat <- cor(train[, list(
 )])
 
 # Get Upper Triangle
-cormat[lower.tri(cormat)]<- NA
+cormat.tri <- cormat[lower.tri(cormat)]<- NA
 
 # Reshape data.table
 library(reshape2)
-melted.cormat <- melt(cormat, na.rm = TRUE)
+melted.cormat <- melt(cormat.tri, na.rm = TRUE)
 
+# Create Correlation Map
 ggplot(data = melted.cormat, aes(Var2, Var1, fill = value))+
   geom_tile(color = "white")+
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -155,8 +157,9 @@ ggplot(data = melted.cormat, aes(Var2, Var1, fill = value))+
                                    size = 10, hjust = 1))+
   ggtitle("Correlation Heatmap")
 
-
-
+# Recreate Correlation Map Using corrplot
+library(corrplot)
+corrplot(cormat, method = "circle", type = "lower", sig.level = 0.01, insig = "blank")
 
 
 
